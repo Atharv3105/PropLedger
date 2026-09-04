@@ -1,0 +1,67 @@
+Sort  (cost=3678.68..3693.71 rows=6012 width=207) (actual time=49.580..49.732 rows=5580 loops=1)
+  Output: rc.billing_year, rc.billing_month, p.property_id, p.name, (count(rc.charge_id)), (sum(rc.charge_amount)), (sum(rc.amount_paid)), (sum((rc.charge_amount - rc.amount_paid))), (round(((sum(rc.amount_paid) / NULLIF(sum(rc.charge_amount), '0'::numeric)) * '100'::numeric), 2)), (count(CASE WHEN ((rc.status)::text = 'PAID'::text) THEN 1 ELSE NULL::integer END)), (count(CASE WHEN ((rc.status)::text = 'PARTIALLY_PAID'::text) THEN 1 ELSE NULL::integer END)), (count(CASE WHEN ((rc.status)::text = 'OVERDUE'::text) THEN 1 ELSE NULL::integer END))
+  Sort Key: rc.billing_month DESC, (sum(rc.charge_amount)) DESC
+  Sort Method: quicksort  Memory: 916kB
+  Buffers: shared hit=381
+  ->  HashAggregate  (cost=3135.99..3301.32 rows=6012 width=207) (actual time=38.913..44.712 rows=5580 loops=1)
+        Output: rc.billing_year, rc.billing_month, p.property_id, p.name, count(rc.charge_id), sum(rc.charge_amount), sum(rc.amount_paid), sum((rc.charge_amount - rc.amount_paid)), round(((sum(rc.amount_paid) / NULLIF(sum(rc.charge_amount), '0'::numeric)) * '100'::numeric), 2), count(CASE WHEN ((rc.status)::text = 'PAID'::text) THEN 1 ELSE NULL::integer END), count(CASE WHEN ((rc.status)::text = 'PARTIALLY_PAID'::text) THEN 1 ELSE NULL::integer END), count(CASE WHEN ((rc.status)::text = 'OVERDUE'::text) THEN 1 ELSE NULL::integer END)
+        Group Key: rc.billing_month, p.property_id
+        Batches: 1  Memory Usage: 6865kB
+        Buffers: shared hit=381
+        ->  Hash Join  (cost=308.73..2161.34 rows=29989 width=72) (actual time=1.401..22.663 rows=30072 loops=1)
+              Output: rc.billing_month, p.property_id, rc.billing_year, p.name, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status
+              Inner Unique: true
+              Hash Cond: (b.property_id = p.property_id)
+              Buffers: shared hit=381
+              ->  Hash Join  (cost=285.46..2058.68 rows=29989 width=41) (actual time=1.287..18.696 rows=30072 loops=1)
+                    Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, b.property_id
+                    Inner Unique: true
+                    Hash Cond: (u.building_id = b.building_id)
+                    Buffers: shared hit=369
+                    ->  Hash Join  (cost=241.02..1935.26 rows=29989 width=41) (actual time=1.102..14.670 rows=30072 loops=1)
+                          Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, u.building_id
+                          Inner Unique: true
+                          Hash Cond: (l.unit_id = u.unit_id)
+                          Buffers: shared hit=353
+                          ->  Hash Join  (cost=98.85..1714.27 rows=29989 width=41) (actual time=0.474..9.174 rows=30072 loops=1)
+                                Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, l.unit_id
+                                Inner Unique: true
+                                Hash Cond: (rc.lease_id = l.lease_id)
+                                Buffers: shared hit=295
+                                ->  Index Only Scan Backward using idx_rent_charges_year_month_cov on public.rent_charges rc  (cost=0.42..1536.99 rows=29989 width=41) (actual time=0.015..4.244 rows=30072 loops=1)
+                                      Output: rc.billing_year, rc.billing_month, rc.lease_id, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status
+                                      Index Cond: (rc.billing_year = 2025)
+                                      Heap Fetches: 9
+                                      Buffers: shared hit=253
+                                ->  Hash  (cost=67.08..67.08 rows=2508 width=16) (actual time=0.441..0.443 rows=2508 loops=1)
+                                      Output: l.lease_id, l.unit_id
+                                      Buckets: 4096  Batches: 1  Memory Usage: 150kB
+                                      Buffers: shared hit=42
+                                      ->  Seq Scan on public.leases l  (cost=0.00..67.08 rows=2508 width=16) (actual time=0.003..0.200 rows=2508 loops=1)
+                                            Output: l.lease_id, l.unit_id
+                                            Buffers: shared hit=42
+                          ->  Hash  (cost=95.41..95.41 rows=3741 width=16) (actual time=0.614..0.614 rows=3741 loops=1)
+                                Output: u.unit_id, u.building_id
+                                Buckets: 4096  Batches: 1  Memory Usage: 208kB
+                                Buffers: shared hit=58
+                                ->  Seq Scan on public.units u  (cost=0.00..95.41 rows=3741 width=16) (actual time=0.002..0.278 rows=3741 loops=1)
+                                      Output: u.unit_id, u.building_id
+                                      Buffers: shared hit=58
+                    ->  Hash  (cost=28.64..28.64 rows=1264 width=16) (actual time=0.178..0.178 rows=1264 loops=1)
+                          Output: b.building_id, b.property_id
+                          Buckets: 2048  Batches: 1  Memory Usage: 76kB
+                          Buffers: shared hit=16
+                          ->  Seq Scan on public.buildings b  (cost=0.00..28.64 rows=1264 width=16) (actual time=0.002..0.070 rows=1264 loops=1)
+                                Output: b.building_id, b.property_id
+                                Buffers: shared hit=16
+              ->  Hash  (cost=17.01..17.01 rows=501 width=39) (actual time=0.107..0.108 rows=501 loops=1)
+                    Output: p.property_id, p.name
+                    Buckets: 1024  Batches: 1  Memory Usage: 44kB
+                    Buffers: shared hit=12
+                    ->  Seq Scan on public.properties p  (cost=0.00..17.01 rows=501 width=39) (actual time=0.005..0.043 rows=501 loops=1)
+                          Output: p.property_id, p.name
+                          Buffers: shared hit=12
+Planning:
+  Buffers: shared hit=66
+Planning Time: 0.813 ms
+Execution Time: 50.560 ms

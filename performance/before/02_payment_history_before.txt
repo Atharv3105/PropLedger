@@ -1,0 +1,29 @@
+WindowAgg  (cost=5.13..16392.69 rows=98314 width=128) (actual time=0.136..164.561 rows=98458 loops=1)
+  Output: p.payment_id, p.lease_id, l.unit_id, p.payment_date, p.amount, p.payment_method, p.reference_number, (sum(p.amount) OVER (?)), count(p.payment_id) OVER (?), avg(p.amount) OVER (?)
+  Buffers: shared hit=9793
+  ->  WindowAgg  (cost=5.13..14672.20 rows=98314 width=88) (actual time=0.066..120.728 rows=98458 loops=1)
+        Output: p.payment_id, p.lease_id, p.payment_date, l.unit_id, p.amount, p.payment_method, p.reference_number, sum(p.amount) OVER (?)
+        Buffers: shared hit=9793
+        ->  Incremental Sort  (cost=5.13..12705.92 rows=98314 width=56) (actual time=0.058..67.050 rows=98458 loops=1)
+              Output: p.payment_id, p.lease_id, p.payment_date, l.unit_id, p.amount, p.payment_method, p.reference_number
+              Sort Key: p.lease_id, p.payment_date, p.payment_id
+              Presorted Key: p.lease_id
+              Full-sort Groups: 2506  Sort Method: quicksort  Average Memory: 29kB  Peak Memory: 29kB
+              Buffers: shared hit=9793
+              ->  Merge Join  (cost=0.57..8825.06 rows=98314 width=56) (actual time=0.021..41.063 rows=98458 loops=1)
+                    Output: p.payment_id, p.lease_id, p.payment_date, l.unit_id, p.amount, p.payment_method, p.reference_number
+                    Inner Unique: true
+                    Merge Cond: (p.lease_id = l.lease_id)
+                    Buffers: shared hit=9793
+                    ->  Index Scan using idx_payments_lease_id on public.payments p  (cost=0.29..7470.48 rows=98314 width=48) (actual time=0.012..29.018 rows=98458 loops=1)
+                          Output: p.payment_id, p.lease_id, p.payment_date, p.amount, p.payment_method, p.reference_number, p.notes, p.recorded_by, p.created_at
+                          Filter: (p.payment_date >= '2023-01-01'::date)
+                          Rows Removed by Filter: 28568
+                          Buffers: shared hit=9743
+                    ->  Index Scan using leases_pkey on public.leases l  (cost=0.28..119.49 rows=2508 width=16) (actual time=0.006..1.024 rows=2506 loops=1)
+                          Output: l.lease_id, l.unit_id, l.start_date, l.end_date, l.monthly_rent, l.security_deposit, l.rent_due_day, l.late_fee_policy_id, l.status, l.renewal_status, l.predecessor_lease_id, l.notes, l.created_at, l.created_by, l.modified_at, l.modified_by
+                          Buffers: shared hit=50
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.305 ms
+Execution Time: 167.113 ms

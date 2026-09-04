@@ -1,0 +1,54 @@
+Sort  (cost=333.01..334.26 rows=501 width=233) (actual time=6.230..6.247 rows=501 loops=1)
+  Output: p.property_id, p.name, p.property_type, (count(u.unit_id)), (count(CASE WHEN ((u.status)::text = 'Occupied'::text) THEN 1 ELSE NULL::integer END)), (count(CASE WHEN ((u.status)::text = 'Vacant'::text) THEN 1 ELSE NULL::integer END)), (round((((count(CASE WHEN ((u.status)::text = 'Occupied'::text) THEN 1 ELSE NULL::integer END))::numeric / (NULLIF(count(u.unit_id), 0))::numeric) * '100'::numeric), 2)), (COALESCE(sum(u.market_rent), 0.00)), (COALESCE(sum(l.monthly_rent), 0.00)), (round(((COALESCE(sum(l.monthly_rent), 0.00) / NULLIF(sum(u.market_rent), '0'::numeric)) * '100'::numeric), 2)), (COALESCE(sum(u.square_feet), '0'::numeric))
+  Sort Key: (round((((count(CASE WHEN ((u.status)::text = 'Occupied'::text) THEN 1 ELSE NULL::integer END))::numeric / (NULLIF(count(u.unit_id), 0))::numeric) * '100'::numeric), 2)), (count(u.unit_id)) DESC
+  Sort Method: quicksort  Memory: 87kB
+  Buffers: shared hit=87
+  ->  HashAggregate  (cost=289.25..310.54 rows=501 width=233) (actual time=4.257..5.728 rows=501 loops=1)
+        Output: p.property_id, p.name, p.property_type, count(u.unit_id), count(CASE WHEN ((u.status)::text = 'Occupied'::text) THEN 1 ELSE NULL::integer END), count(CASE WHEN ((u.status)::text = 'Vacant'::text) THEN 1 ELSE NULL::integer END), round((((count(CASE WHEN ((u.status)::text = 'Occupied'::text) THEN 1 ELSE NULL::integer END))::numeric / (NULLIF(count(u.unit_id), 0))::numeric) * '100'::numeric), 2), COALESCE(sum(u.market_rent), 0.00), COALESCE(sum(l.monthly_rent), 0.00), round(((COALESCE(sum(l.monthly_rent), 0.00) / NULLIF(sum(u.market_rent), '0'::numeric)) * '100'::numeric), 2), COALESCE(sum(u.square_feet), '0'::numeric)
+        Group Key: p.property_id
+        Batches: 1  Memory Usage: 809kB
+        Buffers: shared hit=87
+        ->  Hash Left Join  (cost=75.87..205.08 rows=3741 width=84) (actual time=0.321..2.638 rows=3741 loops=1)
+              Output: p.property_id, p.name, p.property_type, u.unit_id, u.status, u.market_rent, l.monthly_rent, u.square_feet
+              Hash Cond: (u.unit_id = l.unit_id)
+              Buffers: shared hit=87
+              ->  Hash Join  (cost=67.71..182.87 rows=3741 width=78) (actual time=0.308..2.190 rows=3741 loops=1)
+                    Output: p.property_id, p.name, p.property_type, u.unit_id, u.status, u.market_rent, u.square_feet
+                    Inner Unique: true
+                    Hash Cond: (b.property_id = p.property_id)
+                    Buffers: shared hit=86
+                    ->  Hash Join  (cost=44.44..149.70 rows=3741 width=37) (actual time=0.187..1.521 rows=3741 loops=1)
+                          Output: b.property_id, u.unit_id, u.status, u.market_rent, u.square_feet
+                          Inner Unique: true
+                          Hash Cond: (u.building_id = b.building_id)
+                          Buffers: shared hit=74
+                          ->  Seq Scan on public.units u  (cost=0.00..95.41 rows=3741 width=37) (actual time=0.001..0.350 rows=3741 loops=1)
+                                Output: u.unit_id, u.building_id, u.unit_number, u.floor_number, u.unit_type, u.square_feet, u.market_rent, u.target_rent, u.status, u.is_active, u.created_at, u.created_by, u.modified_at, u.modified_by
+                                Buffers: shared hit=58
+                          ->  Hash  (cost=28.64..28.64 rows=1264 width=16) (actual time=0.177..0.178 rows=1264 loops=1)
+                                Output: b.property_id, b.building_id
+                                Buckets: 2048  Batches: 1  Memory Usage: 76kB
+                                Buffers: shared hit=16
+                                ->  Seq Scan on public.buildings b  (cost=0.00..28.64 rows=1264 width=16) (actual time=0.002..0.072 rows=1264 loops=1)
+                                      Output: b.property_id, b.building_id
+                                      Buffers: shared hit=16
+                    ->  Hash  (cost=17.01..17.01 rows=501 width=49) (actual time=0.118..0.119 rows=501 loops=1)
+                          Output: p.property_id, p.name, p.property_type
+                          Buckets: 1024  Batches: 1  Memory Usage: 49kB
+                          Buffers: shared hit=12
+                          ->  Seq Scan on public.properties p  (cost=0.00..17.01 rows=501 width=49) (actual time=0.005..0.048 rows=501 loops=1)
+                                Output: p.property_id, p.name, p.property_type
+                                Buffers: shared hit=12
+              ->  Hash  (cost=8.15..8.15 rows=1 width=14) (actual time=0.007..0.007 rows=0 loops=1)
+                    Output: l.monthly_rent, l.unit_id
+                    Buckets: 1024  Batches: 1  Memory Usage: 8kB
+                    Buffers: shared hit=1
+                    ->  Index Only Scan using idx_leases_active_units on public.leases l  (cost=0.12..8.15 rows=1 width=14) (actual time=0.007..0.007 rows=0 loops=1)
+                          Output: l.monthly_rent, l.unit_id
+                          Filter: ((l.start_date <= CURRENT_DATE) AND ((l.end_date IS NULL) OR (l.end_date >= CURRENT_DATE)))
+                          Heap Fetches: 0
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=51
+Planning Time: 0.633 ms
+Execution Time: 6.446 ms

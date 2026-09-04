@@ -46,12 +46,15 @@ BEGIN
     FOR v_charge_record IN 
         SELECT charge_id, (charge_amount - amount_paid) AS balance_due
         FROM rent_charges
-        WHERE lease_id = p_lease_id AND status != 'PAID'
+        WHERE lease_id = p_lease_id 
+          AND UPPER(status) NOT IN ('PAID', 'CANCELLED')
+          AND (charge_amount - amount_paid) > 0.00
         ORDER BY charge_date ASC, charge_id ASC
     LOOP
         EXIT WHEN v_remaining_funds <= 0.00;
 
         v_allocate_amt := LEAST(v_remaining_funds, v_charge_record.balance_due);
+        CONTINUE WHEN v_allocate_amt <= 0.00;
 
         -- Insert allocation
         INSERT INTO payment_allocations (payment_id, charge_id, allocated_amount)

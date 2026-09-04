@@ -1,0 +1,23 @@
+WindowAgg  (cost=0.70..12007.67 rows=98367 width=128) (actual time=0.094..152.850 rows=98458 loops=1)
+  Output: p.payment_id, p.lease_id, l.unit_id, p.payment_date, p.amount, p.payment_method, p.reference_number, (sum(p.amount) OVER (?)), count(p.payment_id) OVER (?), avg(p.amount) OVER (?)
+  Buffers: shared hit=1302
+  ->  WindowAgg  (cost=0.70..10286.25 rows=98367 width=88) (actual time=0.034..85.907 rows=98458 loops=1)
+        Output: p.payment_id, p.lease_id, p.payment_date, l.unit_id, p.amount, p.payment_method, p.reference_number, sum(p.amount) OVER (?)
+        Buffers: shared hit=1302
+        ->  Merge Join  (cost=0.70..8318.91 rows=98367 width=56) (actual time=0.026..28.252 rows=98458 loops=1)
+              Output: p.payment_id, p.lease_id, p.payment_date, l.unit_id, p.amount, p.payment_method, p.reference_number
+              Inner Unique: true
+              Merge Cond: (p.lease_id = l.lease_id)
+              Buffers: shared hit=1302
+              ->  Index Only Scan using idx_payments_lease_date_id_cov on public.payments p  (cost=0.42..6963.67 rows=98367 width=48) (actual time=0.012..16.963 rows=98458 loops=1)
+                    Output: p.lease_id, p.payment_date, p.payment_id, p.amount, p.payment_method, p.reference_number
+                    Index Cond: (p.payment_date >= '2023-01-01'::date)
+                    Heap Fetches: 115
+                    Buffers: shared hit=1252
+              ->  Index Scan using leases_pkey on public.leases l  (cost=0.28..119.49 rows=2508 width=16) (actual time=0.011..1.754 rows=2506 loops=1)
+                    Output: l.lease_id, l.unit_id, l.start_date, l.end_date, l.monthly_rent, l.security_deposit, l.rent_due_day, l.late_fee_policy_id, l.status, l.renewal_status, l.predecessor_lease_id, l.notes, l.created_at, l.created_by, l.modified_at, l.modified_by
+                    Buffers: shared hit=50
+Planning:
+  Buffers: shared hit=23
+Planning Time: 0.449 ms
+Execution Time: 156.182 ms

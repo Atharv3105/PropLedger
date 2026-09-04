@@ -54,8 +54,8 @@ Development follows a strict 10-phase, phase-gated execution model:
 | **Phase 5** | **React 18 Application** | ✅ **COMPLETE** | [`phase-05-completion.md`](docs/phases/phase-05-completion.md) |
 | **Phase 6** | **SSRS Reporting Equivalent** | ✅ **COMPLETE** | [`phase-06-completion.md`](docs/phases/phase-06-completion.md) |
 | **Phase 7** | **Crystal Reports Equivalent** | ✅ **COMPLETE** | [`phase-07-completion.md`](docs/phases/phase-07-completion.md) |
-| **Phase 8** | Performance Engineering & Benchmarks | ⏳ Next | `docs/phases/phase-08-completion.md` |
-| **Phase 9** | Testing & Quality Validation | 🔴 Queued | `docs/phases/phase-09-completion.md` |
+| **Phase 8** | **Performance Engineering & Benchmarks** | ✅ **COMPLETE** | [`phase-08-completion.md`](docs/phases/phase-08-completion.md) |
+| **Phase 9** | Testing & Quality Validation | ⏳ Next | `docs/phases/phase-09-completion.md` |
 | **Phase 10**| Interview & Portfolio Packaging | 🔴 Queued | `docs/phases/phase-10-completion.md` |
 
 ---
@@ -78,11 +78,26 @@ pytest tests/test_crystal_reports.py -v
 ```
 Generates CR-01 (Tenant Statement with Remittance Slip), CR-02 (Columnar Rent Roll with Economic Occupancy), and CR-03 (Multi-Step Income & Expense Statement) in `reporting/crystal-equivalent/output/`.
 
+### Performance Engineering & Benchmark Suite (526k+ Records)
+```bash
+cd performance/benchmarks
+python run_benchmarks.py
+```
+Profiles 5 core operational workloads with `EXPLAIN (ANALYZE, BUFFERS)` in baseline and optimized states, saving raw execution plans to `performance/before/` and `performance/after/`.
+
 ---
 
 ## Documentation Navigation
 
 - **Requirements Traceability Matrix**: [`docs/requirements/requirements-traceability.md`](docs/requirements/requirements-traceability.md)
+- **Performance Benchmark Results (526k Transactions)**: [`docs/performance/benchmark-results.md`](docs/performance/benchmark-results.md)
+- **Enterprise Indexing Strategy Guide**: [`docs/performance/indexing-strategy.md`](docs/performance/indexing-strategy.md)
+- **Performance Case Studies**:
+  - [01 — Property Occupancy & Portfolio Aggregation](docs/performance/01-property-occupancy.md)
+  - [02 — Tenant Payment History Ledger & Sort Elimination](docs/performance/02-payment-history.md)
+  - [03 — Monthly Rent Collection Aggregation](docs/performance/03-rent-collection.md)
+  - [04 — Delinquency Aging Report Under Heavy Volume](docs/performance/04-delinquency.md)
+  - [05 — Multi-Year Financial Performance Summary Rollup](docs/performance/05-financial-summary.md)
 - **Multi-Reporting Engine Architectural Comparison**: [`docs/reports/reporting-comparison.md`](docs/reports/reporting-comparison.md)
 - **Report Catalog (14 Institutional Reports)**: [`docs/reports/report-catalog.md`](docs/reports/report-catalog.md)
 - **SSRS Replacement Case Study**: [`docs/reports/client-requirement-case-study.md`](docs/reports/client-requirement-case-study.md)

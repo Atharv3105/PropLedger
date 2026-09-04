@@ -1,0 +1,97 @@
+Sort  (cost=16875.76..16942.14 rows=26553 width=277) (actual time=108.597..108.648 rows=1395 loops=1)
+  Output: p.property_id, p.name, p.property_type, (((EXTRACT(year FROM rc.due_date)))::integer), (COALESCE((sum(rc.amount_paid)), 0.00)), (COALESCE((sum(e.amount)), 0.00)), ((COALESCE((sum(rc.amount_paid)), 0.00) - COALESCE((sum(e.amount)), 0.00))), (round((((COALESCE((sum(rc.amount_paid)), 0.00) - COALESCE((sum(e.amount)), 0.00)) / NULLIF(COALESCE((sum(rc.amount_paid)), 0.00), '0'::numeric)) * '100'::numeric), 2)), (COALESCE((sum(CASE WHEN ((e.category)::text = 'Utilities'::text) THEN e.amount ELSE '0'::numeric END)), 0.00)), (COALESCE((sum(CASE WHEN ((e.category)::text = 'Repairs'::text) THEN e.amount ELSE '0'::numeric END)), 0.00)), (COALESCE((sum(CASE WHEN ((e.category)::text = 'Management Fee'::text) THEN e.amount ELSE '0'::numeric END)), 0.00))
+  Sort Key: (((EXTRACT(year FROM rc.due_date)))::integer) DESC, ((COALESCE((sum(rc.amount_paid)), 0.00) - COALESCE((sum(e.amount)), 0.00))) DESC
+  Sort Method: quicksort  Memory: 221kB
+  Buffers: shared hit=4470
+  ->  Hash Right Join  (cost=10608.58..11473.56 rows=26553 width=277) (actual time=103.065..106.819 rows=1395 loops=1)
+        Output: p.property_id, p.name, p.property_type, (((EXTRACT(year FROM rc.due_date)))::integer), COALESCE((sum(rc.amount_paid)), 0.00), COALESCE((sum(e.amount)), 0.00), (COALESCE((sum(rc.amount_paid)), 0.00) - COALESCE((sum(e.amount)), 0.00)), round((((COALESCE((sum(rc.amount_paid)), 0.00) - COALESCE((sum(e.amount)), 0.00)) / NULLIF(COALESCE((sum(rc.amount_paid)), 0.00), '0'::numeric)) * '100'::numeric), 2), COALESCE((sum(CASE WHEN ((e.category)::text = 'Utilities'::text) THEN e.amount ELSE '0'::numeric END)), 0.00), COALESCE((sum(CASE WHEN ((e.category)::text = 'Repairs'::text) THEN e.amount ELSE '0'::numeric END)), 0.00), COALESCE((sum(CASE WHEN ((e.category)::text = 'Management Fee'::text) THEN e.amount ELSE '0'::numeric END)), 0.00)
+        Hash Cond: ((e.property_id = p.property_id) AND ((((EXTRACT(year FROM e.expense_date)))::integer) = (((EXTRACT(year FROM rc.due_date)))::integer)))
+        Buffers: shared hit=4470
+        ->  HashAggregate  (cost=1393.95..1466.19 rows=2627 width=204) (actual time=11.276..13.541 rows=1503 loops=1)
+              Output: e.property_id, ((EXTRACT(year FROM e.expense_date)))::integer, sum(e.amount), sum(CASE WHEN ((e.category)::text = 'Utilities'::text) THEN e.amount ELSE '0'::numeric END), sum(CASE WHEN ((e.category)::text = 'Repairs'::text) THEN e.amount ELSE '0'::numeric END), sum(CASE WHEN ((e.category)::text = 'Management Fee'::text) THEN e.amount ELSE '0'::numeric END), NULL::numeric, (EXTRACT(year FROM e.expense_date))
+              Group Key: e.property_id, EXTRACT(year FROM e.expense_date)
+              Batches: 1  Memory Usage: 2161kB
+              Buffers: shared hit=549
+              ->  Seq Scan on public.expenses e  (cost=0.00..988.14 rows=18036 width=59) (actual time=0.163..4.712 rows=18036 loops=1)
+                    Output: e.property_id, EXTRACT(year FROM e.expense_date), e.expense_date, e.amount, e.category
+                    Filter: ((e.expense_date >= '2023-01-01'::date) AND (e.expense_date <= '2025-12-31'::date))
+                    Rows Removed by Filter: 8234
+                    Buffers: shared hit=549
+        ->  Hash  (cost=8816.34..8816.34 rows=26553 width=85) (actual time=91.704..91.714 rows=1395 loops=1)
+              Output: p.property_id, p.name, p.property_type, (((EXTRACT(year FROM rc.due_date)))::integer), (sum(rc.amount_paid))
+              Buckets: 32768  Batches: 1  Memory Usage: 386kB
+              Buffers: shared hit=3921
+              ->  Hash Join  (cost=7949.46..8816.34 rows=26553 width=85) (actual time=90.740..91.325 rows=1395 loops=1)
+                    Output: p.property_id, p.name, p.property_type, (((EXTRACT(year FROM rc.due_date)))::integer), (sum(rc.amount_paid))
+                    Inner Unique: true
+                    Hash Cond: (p_1.property_id = p.property_id)
+                    Buffers: shared hit=3921
+                    ->  HashAggregate  (cost=7926.19..8457.25 rows=26553 width=84) (actual time=90.587..91.007 rows=1395 loops=1)
+                          Output: p_1.property_id, ((EXTRACT(year FROM rc.due_date)))::integer, sum(rc.amount_paid), NULL::bigint, (EXTRACT(year FROM rc.due_date))
+                          Group Key: p_1.property_id, EXTRACT(year FROM rc.due_date)
+                          Batches: 1  Memory Usage: 1553kB
+                          Buffers: shared hit=3909
+                          ->  Hash Join  (cost=308.31..7249.45 rows=90231 width=50) (actual time=1.613..70.598 rows=90216 loops=1)
+                                Output: p_1.property_id, EXTRACT(year FROM rc.due_date), rc.due_date, rc.amount_paid
+                                Inner Unique: true
+                                Hash Cond: (b.property_id = p_1.property_id)
+                                Buffers: shared hit=3909
+                                ->  Hash Join  (cost=285.04..6761.74 rows=90231 width=18) (actual time=1.538..53.644 rows=90216 loops=1)
+                                      Output: rc.due_date, rc.amount_paid, b.property_id
+                                      Inner Unique: true
+                                      Hash Cond: (u.building_id = b.building_id)
+                                      Buffers: shared hit=3897
+                                      ->  Hash Join  (cost=240.60..6479.66 rows=90231 width=18) (actual time=1.349..42.853 rows=90216 loops=1)
+                                            Output: rc.due_date, rc.amount_paid, u.building_id
+                                            Inner Unique: true
+                                            Hash Cond: (l.unit_id = u.unit_id)
+                                            Buffers: shared hit=3881
+                                            ->  Hash Join  (cost=98.43..6100.36 rows=90231 width=18) (actual time=0.762..31.176 rows=90216 loops=1)
+                                                  Output: rc.due_date, rc.amount_paid, l.unit_id
+                                                  Inner Unique: true
+                                                  Hash Cond: (rc.lease_id = l.lease_id)
+                                                  Buffers: shared hit=3823
+                                                  ->  Seq Scan on public.rent_charges rc  (cost=0.00..5764.68 rows=90231 width=18) (actual time=0.379..17.816 rows=90216 loops=1)
+                                                        Output: rc.charge_id, rc.lease_id, rc.billing_month, rc.billing_year, rc.charge_date, rc.due_date, rc.charge_amount, rc.amount_paid, rc.status, rc.created_at, rc.created_by, rc.modified_at, rc.modified_by
+                                                        Filter: ((rc.due_date >= '2023-01-01'::date) AND (rc.due_date <= '2025-12-31'::date))
+                                                        Rows Removed by Filter: 42029
+                                                        Buffers: shared hit=3781
+                                                  ->  Hash  (cost=67.08..67.08 rows=2508 width=16) (actual time=0.362..0.364 rows=2508 loops=1)
+                                                        Output: l.lease_id, l.unit_id
+                                                        Buckets: 4096  Batches: 1  Memory Usage: 150kB
+                                                        Buffers: shared hit=42
+                                                        ->  Seq Scan on public.leases l  (cost=0.00..67.08 rows=2508 width=16) (actual time=0.006..0.151 rows=2508 loops=1)
+                                                              Output: l.lease_id, l.unit_id
+                                                              Buffers: shared hit=42
+                                            ->  Hash  (cost=95.41..95.41 rows=3741 width=16) (actual time=0.572..0.573 rows=3741 loops=1)
+                                                  Output: u.unit_id, u.building_id
+                                                  Buckets: 4096  Batches: 1  Memory Usage: 208kB
+                                                  Buffers: shared hit=58
+                                                  ->  Seq Scan on public.units u  (cost=0.00..95.41 rows=3741 width=16) (actual time=0.002..0.235 rows=3741 loops=1)
+                                                        Output: u.unit_id, u.building_id
+                                                        Buffers: shared hit=58
+                                      ->  Hash  (cost=28.64..28.64 rows=1264 width=16) (actual time=0.182..0.182 rows=1264 loops=1)
+                                            Output: b.building_id, b.property_id
+                                            Buckets: 2048  Batches: 1  Memory Usage: 76kB
+                                            Buffers: shared hit=16
+                                            ->  Seq Scan on public.buildings b  (cost=0.00..28.64 rows=1264 width=16) (actual time=0.004..0.075 rows=1264 loops=1)
+                                                  Output: b.building_id, b.property_id
+                                                  Buffers: shared hit=16
+                                ->  Hash  (cost=17.01..17.01 rows=501 width=8) (actual time=0.066..0.066 rows=501 loops=1)
+                                      Output: p_1.property_id
+                                      Buckets: 1024  Batches: 1  Memory Usage: 28kB
+                                      Buffers: shared hit=12
+                                      ->  Seq Scan on public.properties p_1  (cost=0.00..17.01 rows=501 width=8) (actual time=0.001..0.025 rows=501 loops=1)
+                                            Output: p_1.property_id
+                                            Buffers: shared hit=12
+                    ->  Hash  (cost=17.01..17.01 rows=501 width=49) (actual time=0.143..0.143 rows=501 loops=1)
+                          Output: p.property_id, p.name, p.property_type
+                          Buckets: 1024  Batches: 1  Memory Usage: 49kB
+                          Buffers: shared hit=12
+                          ->  Seq Scan on public.properties p  (cost=0.00..17.01 rows=501 width=49) (actual time=0.009..0.064 rows=501 loops=1)
+                                Output: p.property_id, p.name, p.property_type
+                                Buffers: shared hit=12
+Planning:
+  Buffers: shared hit=57
+Planning Time: 3.295 ms
+Execution Time: 109.469 ms

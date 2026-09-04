@@ -1,0 +1,97 @@
+Sort  (cost=6063.98..6069.04 rows=2022 width=259) (actual time=42.997..43.067 rows=2360 loops=1)
+  Output: p.property_id, p.name, l.lease_id, ((((t.first_name)::text || ' '::text) || (t.last_name)::text)), u.unit_number, (sum((rc.charge_amount - rc.amount_paid))), (sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 1) AND ((CURRENT_DATE - rc.due_date) <= 30)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END)), (sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 31) AND ((CURRENT_DATE - rc.due_date) <= 60)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END)), (sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 61) AND ((CURRENT_DATE - rc.due_date) <= 90)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END)), (sum(CASE WHEN ((CURRENT_DATE - rc.due_date) > 90) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END)), (max((CURRENT_DATE - rc.due_date))), t.first_name, t.last_name
+  Sort Key: (sum((rc.charge_amount - rc.amount_paid))) DESC, (max((CURRENT_DATE - rc.due_date))) DESC
+  Sort Method: quicksort  Memory: 418kB
+  Buffers: shared hit=520
+  ->  HashAggregate  (cost=5791.17..5952.96 rows=2022 width=259) (actual time=39.741..41.674 rows=2360 loops=1)
+        Output: p.property_id, p.name, l.lease_id, (((t.first_name)::text || ' '::text) || (t.last_name)::text), u.unit_number, sum((rc.charge_amount - rc.amount_paid)), sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 1) AND ((CURRENT_DATE - rc.due_date) <= 30)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END), sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 31) AND ((CURRENT_DATE - rc.due_date) <= 60)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END), sum(CASE WHEN (((CURRENT_DATE - rc.due_date) >= 61) AND ((CURRENT_DATE - rc.due_date) <= 90)) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END), sum(CASE WHEN ((CURRENT_DATE - rc.due_date) > 90) THEN (rc.charge_amount - rc.amount_paid) ELSE '0'::numeric END), max((CURRENT_DATE - rc.due_date)), t.first_name, t.last_name
+        Group Key: p.property_id, l.lease_id, t.first_name, t.last_name, u.unit_number
+        Filter: (sum((rc.charge_amount - rc.amount_paid)) > '0'::numeric)
+        Batches: 1  Memory Usage: 4561kB
+        Buffers: shared hit=520
+        ->  Hash Join  (cost=871.40..5199.64 rows=6067 width=79) (actual time=3.046..21.501 rows=14660 loops=1)
+              Output: p.property_id, l.lease_id, u.unit_number, t.first_name, t.last_name, p.name, rc.charge_amount, rc.amount_paid, rc.due_date
+              Inner Unique: true
+              Hash Cond: (b.property_id = p.property_id)
+              Buffers: shared hit=520
+              ->  Hash Join  (cost=848.13..5160.31 rows=6067 width=48) (actual time=2.913..19.260 rows=14660 loops=1)
+                    Output: rc.charge_amount, rc.amount_paid, rc.due_date, l.lease_id, u.unit_number, b.property_id, t.first_name, t.last_name
+                    Inner Unique: true
+                    Hash Cond: (u.building_id = b.building_id)
+                    Buffers: shared hit=508
+                    ->  Hash Left Join  (cost=803.69..5099.89 rows=6067 width=48) (actual time=2.720..16.626 rows=14660 loops=1)
+                          Output: rc.charge_amount, rc.amount_paid, rc.due_date, l.lease_id, u.unit_number, u.building_id, t.first_name, t.last_name
+                          Hash Cond: (l.lease_id = lt.lease_id)
+                          Buffers: shared hit=492
+                          ->  Hash Join  (cost=600.59..4813.56 rows=6067 width=36) (actual time=1.377..12.365 rows=14660 loops=1)
+                                Output: rc.charge_amount, rc.amount_paid, rc.due_date, l.lease_id, u.unit_number, u.building_id
+                                Inner Unique: true
+                                Hash Cond: (l.unit_id = u.unit_id)
+                                Buffers: shared hit=408
+                                ->  Hash Join  (cost=458.42..4655.44 rows=6067 width=32) (actual time=0.706..8.865 rows=14660 loops=1)
+                                      Output: rc.charge_amount, rc.amount_paid, rc.due_date, l.lease_id, l.unit_id
+                                      Inner Unique: true
+                                      Hash Cond: (rc.lease_id = l.lease_id)
+                                      Buffers: shared hit=350
+                                      ->  Bitmap Heap Scan on public.rent_charges rc  (cost=359.99..4541.06 rows=6067 width=24) (actual time=0.327..5.842 rows=14660 loops=1)
+                                            Output: rc.charge_id, rc.lease_id, rc.billing_month, rc.billing_year, rc.charge_date, rc.due_date, rc.charge_amount, rc.amount_paid, rc.status, rc.created_at, rc.created_by, rc.modified_at, rc.modified_by
+                                            Recheck Cond: ((rc.status)::text = ANY ('{PENDING,PARTIALLY_PAID,OVERDUE}'::text[]))
+                                            Filter: ((rc.charge_amount > rc.amount_paid) AND (rc.due_date < CURRENT_DATE))
+                                            Rows Removed by Filter: 4456
+                                            Heap Blocks: exact=284
+                                            Buffers: shared hit=308
+                                            ->  Bitmap Index Scan on idx_rent_charges_status  (cost=0.00..358.47 rows=18827 width=0) (actual time=0.302..0.302 rows=19117 loops=1)
+                                                  Index Cond: ((rc.status)::text = ANY ('{PENDING,PARTIALLY_PAID,OVERDUE}'::text[]))
+                                                  Buffers: shared hit=24
+                                      ->  Hash  (cost=67.08..67.08 rows=2508 width=16) (actual time=0.363..0.364 rows=2508 loops=1)
+                                            Output: l.lease_id, l.unit_id
+                                            Buckets: 4096  Batches: 1  Memory Usage: 150kB
+                                            Buffers: shared hit=42
+                                            ->  Seq Scan on public.leases l  (cost=0.00..67.08 rows=2508 width=16) (actual time=0.007..0.151 rows=2508 loops=1)
+                                                  Output: l.lease_id, l.unit_id
+                                                  Buffers: shared hit=42
+                                ->  Hash  (cost=95.41..95.41 rows=3741 width=20) (actual time=0.657..0.658 rows=3741 loops=1)
+                                      Output: u.unit_number, u.unit_id, u.building_id
+                                      Buckets: 4096  Batches: 1  Memory Usage: 237kB
+                                      Buffers: shared hit=58
+                                      ->  Seq Scan on public.units u  (cost=0.00..95.41 rows=3741 width=20) (actual time=0.002..0.253 rows=3741 loops=1)
+                                            Output: u.unit_number, u.unit_id, u.building_id
+                                            Buffers: shared hit=58
+                          ->  Hash  (cost=171.85..171.85 rows=2500 width=20) (actual time=1.325..1.326 rows=2508 loops=1)
+                                Output: lt.lease_id, t.first_name, t.last_name
+                                Buckets: 4096  Batches: 1  Memory Usage: 164kB
+                                Buffers: shared hit=84
+                                ->  Hash Left Join  (cost=121.27..171.85 rows=2500 width=20) (actual time=0.450..0.980 rows=2508 loops=1)
+                                      Output: lt.lease_id, t.first_name, t.last_name
+                                      Inner Unique: true
+                                      Hash Cond: (lt.tenant_id = t.tenant_id)
+                                      Buffers: shared hit=84
+                                      ->  Seq Scan on public.lease_tenants lt  (cost=0.00..44.00 rows=2500 width=16) (actual time=0.004..0.172 rows=2508 loops=1)
+                                            Output: lt.lease_id, lt.tenant_id, lt.is_primary, lt.signed_date
+                                            Filter: lt.is_primary
+                                            Buffers: shared hit=19
+                                      ->  Hash  (cost=90.01..90.01 rows=2501 width=20) (actual time=0.432..0.433 rows=2501 loops=1)
+                                            Output: t.first_name, t.last_name, t.tenant_id
+                                            Buckets: 4096  Batches: 1  Memory Usage: 171kB
+                                            Buffers: shared hit=65
+                                            ->  Seq Scan on public.tenants t  (cost=0.00..90.01 rows=2501 width=20) (actual time=0.003..0.168 rows=2501 loops=1)
+                                                  Output: t.first_name, t.last_name, t.tenant_id
+                                                  Buffers: shared hit=65
+                    ->  Hash  (cost=28.64..28.64 rows=1264 width=16) (actual time=0.184..0.184 rows=1264 loops=1)
+                          Output: b.building_id, b.property_id
+                          Buckets: 2048  Batches: 1  Memory Usage: 76kB
+                          Buffers: shared hit=16
+                          ->  Seq Scan on public.buildings b  (cost=0.00..28.64 rows=1264 width=16) (actual time=0.002..0.075 rows=1264 loops=1)
+                                Output: b.building_id, b.property_id
+                                Buffers: shared hit=16
+              ->  Hash  (cost=17.01..17.01 rows=501 width=39) (actual time=0.108..0.108 rows=501 loops=1)
+                    Output: p.property_id, p.name
+                    Buckets: 1024  Batches: 1  Memory Usage: 44kB
+                    Buffers: shared hit=12
+                    ->  Seq Scan on public.properties p  (cost=0.00..17.01 rows=501 width=39) (actual time=0.007..0.047 rows=501 loops=1)
+                          Output: p.property_id, p.name
+                          Buffers: shared hit=12
+Planning:
+  Buffers: shared hit=100
+Planning Time: 1.417 ms
+Execution Time: 43.822 ms

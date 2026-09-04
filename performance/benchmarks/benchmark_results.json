@@ -1,0 +1,97 @@
+[
+  {
+    "case_study_id": "01_occupancy",
+    "description": "PL-132: Property Occupancy & Portfolio Aggregation",
+    "before": {
+      "execution_time_ms": 5.58,
+      "planning_time_ms": 2.07,
+      "shared_buffer_blocks": 542,
+      "root_node": "Sort"
+    },
+    "after": {
+      "execution_time_ms": 5.67,
+      "planning_time_ms": 0.87,
+      "shared_buffer_blocks": 537,
+      "root_node": "Sort"
+    },
+    "speedup_factor": 0.98,
+    "execution_time_reduction_pct": -1.61,
+    "buffer_io_reduction_pct": 0.92
+  },
+  {
+    "case_study_id": "02_payment_history",
+    "description": "PL-133: Large Payment History Ledger & Running Balances",
+    "before": {
+      "execution_time_ms": 164.85,
+      "planning_time_ms": 0.37,
+      "shared_buffer_blocks": 48965,
+      "root_node": "WindowAgg"
+    },
+    "after": {
+      "execution_time_ms": 157.69,
+      "planning_time_ms": 0.51,
+      "shared_buffer_blocks": 5208,
+      "root_node": "WindowAgg"
+    },
+    "speedup_factor": 1.05,
+    "execution_time_reduction_pct": 4.34,
+    "buffer_io_reduction_pct": 89.36
+  },
+  {
+    "case_study_id": "03_rent_collection",
+    "description": "PL-134: Monthly Rent Collection Aggregation",
+    "before": {
+      "execution_time_ms": 57.91,
+      "planning_time_ms": 0.85,
+      "shared_buffer_blocks": 13344,
+      "root_node": "Sort"
+    },
+    "after": {
+      "execution_time_ms": 51.55,
+      "planning_time_ms": 1.05,
+      "shared_buffer_blocks": 2669,
+      "root_node": "Sort"
+    },
+    "speedup_factor": 1.12,
+    "execution_time_reduction_pct": 10.98,
+    "buffer_io_reduction_pct": 80.0
+  },
+  {
+    "case_study_id": "04_delinquency",
+    "description": "PL-135: Delinquency Aging Report under Heavy Volume",
+    "before": {
+      "execution_time_ms": 44.75,
+      "planning_time_ms": 2.08,
+      "shared_buffer_blocks": 4223,
+      "root_node": "Sort"
+    },
+    "after": {
+      "execution_time_ms": 33.77,
+      "planning_time_ms": 2.03,
+      "shared_buffer_blocks": 2472,
+      "root_node": "Sort"
+    },
+    "speedup_factor": 1.33,
+    "execution_time_reduction_pct": 24.54,
+    "buffer_io_reduction_pct": 41.46
+  },
+  {
+    "case_study_id": "05_financial_summary",
+    "description": "PL-136: Multi-Year Property Financial Performance Summary",
+    "before": {
+      "execution_time_ms": 118.99,
+      "planning_time_ms": 0.91,
+      "shared_buffer_blocks": 41360,
+      "root_node": "Sort"
+    },
+    "after": {
+      "execution_time_ms": 118.84,
+      "planning_time_ms": 1.16,
+      "shared_buffer_blocks": 6316,
+      "root_node": "Sort"
+    },
+    "speedup_factor": 1.0,
+    "execution_time_reduction_pct": 0.13,
+    "buffer_io_reduction_pct": 84.73
+  }
+]

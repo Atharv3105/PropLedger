@@ -1,0 +1,70 @@
+Sort  (cost=6822.61..6837.64 rows=6012 width=207) (actual time=58.142..58.295 rows=5580 loops=1)
+  Output: rc.billing_year, rc.billing_month, p.property_id, p.name, (count(rc.charge_id)), (sum(rc.charge_amount)), (sum(rc.amount_paid)), (sum((rc.charge_amount - rc.amount_paid))), (round(((sum(rc.amount_paid) / NULLIF(sum(rc.charge_amount), '0'::numeric)) * '100'::numeric), 2)), (count(CASE WHEN ((rc.status)::text = 'PAID'::text) THEN 1 ELSE NULL::integer END)), (count(CASE WHEN ((rc.status)::text = 'PARTIALLY_PAID'::text) THEN 1 ELSE NULL::integer END)), (count(CASE WHEN ((rc.status)::text = 'OVERDUE'::text) THEN 1 ELSE NULL::integer END))
+  Sort Key: rc.billing_month DESC, (sum(rc.charge_amount)) DESC
+  Sort Method: quicksort  Memory: 916kB
+  Buffers: shared hit=1899
+  ->  HashAggregate  (cost=6279.92..6445.25 rows=6012 width=207) (actual time=47.760..53.831 rows=5580 loops=1)
+        Output: rc.billing_year, rc.billing_month, p.property_id, p.name, count(rc.charge_id), sum(rc.charge_amount), sum(rc.amount_paid), sum((rc.charge_amount - rc.amount_paid)), round(((sum(rc.amount_paid) / NULLIF(sum(rc.charge_amount), '0'::numeric)) * '100'::numeric), 2), count(CASE WHEN ((rc.status)::text = 'PAID'::text) THEN 1 ELSE NULL::integer END), count(CASE WHEN ((rc.status)::text = 'PARTIALLY_PAID'::text) THEN 1 ELSE NULL::integer END), count(CASE WHEN ((rc.status)::text = 'OVERDUE'::text) THEN 1 ELSE NULL::integer END)
+        Group Key: rc.billing_month, p.property_id
+        Batches: 1  Memory Usage: 6865kB
+        Buffers: shared hit=1899
+        ->  Hash Join  (cost=826.05..5300.99 rows=30121 width=72) (actual time=5.085..31.060 rows=30072 loops=1)
+              Output: rc.billing_month, p.property_id, rc.billing_year, p.name, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status
+              Inner Unique: true
+              Hash Cond: (b.property_id = p.property_id)
+              Buffers: shared hit=1899
+              ->  Hash Join  (cost=802.78..5197.98 rows=30121 width=41) (actual time=4.975..27.360 rows=30072 loops=1)
+                    Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, b.property_id
+                    Inner Unique: true
+                    Hash Cond: (u.building_id = b.building_id)
+                    Buffers: shared hit=1887
+                    ->  Hash Join  (cost=758.34..5074.21 rows=30121 width=41) (actual time=4.635..23.279 rows=30072 loops=1)
+                          Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, u.building_id
+                          Inner Unique: true
+                          Hash Cond: (l.unit_id = u.unit_id)
+                          Buffers: shared hit=1871
+                          ->  Hash Join  (cost=616.16..4852.88 rows=30121 width=41) (actual time=3.833..18.347 rows=30072 loops=1)
+                                Output: rc.billing_year, rc.billing_month, rc.charge_id, rc.charge_amount, rc.amount_paid, rc.status, l.unit_id
+                                Inner Unique: true
+                                Hash Cond: (rc.lease_id = l.lease_id)
+                                Buffers: shared hit=1813
+                                ->  Bitmap Heap Scan on public.rent_charges rc  (cost=517.73..4675.25 rows=30121 width=41) (actual time=2.025..9.947 rows=30072 loops=1)
+                                      Output: rc.charge_id, rc.lease_id, rc.billing_month, rc.billing_year, rc.charge_date, rc.due_date, rc.charge_amount, rc.amount_paid, rc.status, rc.created_at, rc.created_by, rc.modified_at, rc.modified_by
+                                      Recheck Cond: (rc.billing_year = 2025)
+                                      Heap Blocks: exact=1722
+                                      Buffers: shared hit=1771
+                                      ->  Bitmap Index Scan on idx_rent_charges_period  (cost=0.00..510.20 rows=30121 width=0) (actual time=1.857..1.857 rows=30072 loops=1)
+                                            Index Cond: (rc.billing_year = 2025)
+                                            Buffers: shared hit=49
+                                ->  Hash  (cost=67.08..67.08 rows=2508 width=16) (actual time=1.774..1.776 rows=2508 loops=1)
+                                      Output: l.lease_id, l.unit_id
+                                      Buckets: 4096  Batches: 1  Memory Usage: 150kB
+                                      Buffers: shared hit=42
+                                      ->  Seq Scan on public.leases l  (cost=0.00..67.08 rows=2508 width=16) (actual time=0.008..1.126 rows=2508 loops=1)
+                                            Output: l.lease_id, l.unit_id
+                                            Buffers: shared hit=42
+                          ->  Hash  (cost=95.41..95.41 rows=3741 width=16) (actual time=0.780..0.780 rows=3741 loops=1)
+                                Output: u.unit_id, u.building_id
+                                Buckets: 4096  Batches: 1  Memory Usage: 208kB
+                                Buffers: shared hit=58
+                                ->  Seq Scan on public.units u  (cost=0.00..95.41 rows=3741 width=16) (actual time=0.005..0.373 rows=3741 loops=1)
+                                      Output: u.unit_id, u.building_id
+                                      Buffers: shared hit=58
+                    ->  Hash  (cost=28.64..28.64 rows=1264 width=16) (actual time=0.333..0.334 rows=1264 loops=1)
+                          Output: b.building_id, b.property_id
+                          Buckets: 2048  Batches: 1  Memory Usage: 76kB
+                          Buffers: shared hit=16
+                          ->  Seq Scan on public.buildings b  (cost=0.00..28.64 rows=1264 width=16) (actual time=0.002..0.205 rows=1264 loops=1)
+                                Output: b.building_id, b.property_id
+                                Buffers: shared hit=16
+              ->  Hash  (cost=17.01..17.01 rows=501 width=39) (actual time=0.102..0.103 rows=501 loops=1)
+                    Output: p.property_id, p.name
+                    Buckets: 1024  Batches: 1  Memory Usage: 44kB
+                    Buffers: shared hit=12
+                    ->  Seq Scan on public.properties p  (cost=0.00..17.01 rows=501 width=39) (actual time=0.004..0.043 rows=501 loops=1)
+                          Output: p.property_id, p.name
+                          Buffers: shared hit=12
+Planning:
+  Buffers: shared hit=65
+Planning Time: 0.750 ms
+Execution Time: 59.069 ms
