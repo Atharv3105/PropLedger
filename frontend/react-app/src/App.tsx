@@ -10,9 +10,12 @@ import { MaintenancePage } from './pages/MaintenancePage';
 import { FinancePage } from './pages/FinancePage';
 import { ReportsPage } from './pages/ReportsPage';
 import { DiagnosticsPage } from './pages/DiagnosticsPage';
+import { useAuth } from './context/AuthContext';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { isLoading, token } = useAuth();
 
   const titles: Record<string, string> = {
     dashboard: 'Executive Dashboard & Live Analytics',
@@ -26,6 +29,19 @@ export const App: React.FC = () => {
     reports: 'Analytical Reports & CTE Hierarchy',
     diagnostics: 'System Health & Engine Diagnostics',
   };
+
+  if (isLoading || !token) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-200">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-2xl shadow-lg shadow-emerald-500/30 animate-pulse">
+            PL
+          </div>
+          <LoadingSpinner message="Authenticating session and establishing database security context..." />
+        </div>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (activeTab) {
