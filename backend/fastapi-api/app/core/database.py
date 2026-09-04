@@ -13,15 +13,32 @@ def init_db_pool():
     global db_pool
     if db_pool is None:
         try:
+            dsns_to_try = []
             if settings.DATABASE_URL:
-                dsn = settings.DATABASE_URL
-                if dsn.startswith("postgres://"):
-                    dsn = dsn.replace("postgres://", "postgresql://", 1)
-                db_pool = pool.ThreadedConnectionPool(
-                    minconn=settings.DB_POOL_MIN,
-                    maxconn=settings.DB_POOL_MAX,
-                    dsn=dsn
-                )
+                dsns_to_try.append(settings.DATABASE_URL)
+            if settings.DATABASE_PUBLIC_URL and settings.DATABASE_PUBLIC_URL not in dsns_to_try:
+                dsns_to_try.append(settings.DATABASE_PUBLIC_URL)
+
+            if dsns_to_try:
+                last_err = None
+                for raw_dsn in dsns_to_try:
+                    dsn = raw_dsn
+                    if dsn.startswith("postgres://"):
+                        dsn = dsn.replace("postgres://", "postgresql://", 1)
+                    try:
+                        db_pool = pool.ThreadedConnectionPool(
+                            minconn=settings.DB_POOL_MIN,
+                            maxconn=settings.DB_POOL_MAX,
+                            dsn=dsn
+                        )
+                        logger.info("PostgreSQL ThreadedConnectionPool initialized successfully.")
+                        return
+                    except Exception as conn_err:
+                        masked = raw_dsn.split("@")[-1] if "@" in raw_dsn else "target host"
+                        logger.warning(f"Database connection attempt to {masked} failed: {conn_err}")
+                        last_err = conn_err
+                if last_err:
+                    raise last_err
             else:
                 db_pool = pool.ThreadedConnectionPool(
                     minconn=settings.DB_POOL_MIN,
@@ -32,7 +49,7 @@ def init_db_pool():
                     password=settings.DB_PASSWORD,
                     dbname=settings.DB_NAME
                 )
-            logger.info("PostgreSQL ThreadedConnectionPool initialized successfully.")
+                logger.info("PostgreSQL ThreadedConnectionPool initialized successfully.")
         except Exception as e:
             logger.error(f"Failed to initialize database connection pool: {e}")
             raise e

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: Optional[str] = None
+    DATABASE_PUBLIC_URL: Optional[str] = None
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
