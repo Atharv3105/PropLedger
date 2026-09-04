@@ -1,0 +1,11 @@
+{
+  "name": "propledger-frontend-root",
+  "private": true,
+  "workspaces": [
+    "react-app"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=propledger-frontend && node -e \"const fs=require('fs'); fs.cpSync('react-app/dist', 'dist', {recursive: true});\"",
+    "dev": "npm run dev --workspace=propledger-frontend"
+  }
+}
