@@ -45,9 +45,10 @@ class Settings(BaseSettings):
                         return [str(x) for x in parsed]
                 except Exception:
                     pass
-            return [i.strip() for i in v_clean.split(",") if i.strip()]
+            origins = [i.strip() for i in v_clean.split(",") if i.strip()]
+            return origins if origins else ["*"]
         elif isinstance(v, (list, tuple)):
-            return [str(x) for x in v]
+            return [str(x) for x in v] if v else ["*"]
         return ["*"]
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
