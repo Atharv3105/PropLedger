@@ -3,23 +3,29 @@ import { reportsApi } from '../services/api';
 import { HierarchyNode, RentPivot, PropertyOccupancy } from '../types';
 import { Card } from '../components/common/Card';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { GitBranch, Table, PieChart } from 'lucide-react';
+import { GitBranch, Table, PieChart, FileText, Download, Eye, CheckCircle } from 'lucide-react';
 
 export const ReportsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'hierarchy' | 'pivot' | 'occupancy'>('hierarchy');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'hierarchy' | 'pivot' | 'occupancy'>('catalog');
   const [hierarchy, setHierarchy] = useState<HierarchyNode[]>([]);
   const [rentPivot, setRentPivot] = useState<RentPivot[]>([]);
   const [occupancy, setOccupancy] = useState<PropertyOccupancy[]>([]);
+  const [catalog, setCatalog] = useState<any[]>([]);
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  const [reportData, setReportData] = useState<any | null>(null);
+  const [loadingData, setLoadingData] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      reportsApi.getHierarchy(4),
-      reportsApi.getRentPivot(50),
-      reportsApi.getOccupancy(),
+      reportsApi.getCatalog().catch(() => []),
+      reportsApi.getHierarchy(4).catch(() => []),
+      reportsApi.getRentPivot(50).catch(() => []),
+      reportsApi.getOccupancy().catch(() => []),
     ])
-      .then(([hier, pvt, occ]) => {
+      .then(([cat, hier, pvt, occ]) => {
+        setCatalog(cat);
         setHierarchy(hier);
         setRentPivot(pvt);
         setOccupancy(occ);
@@ -27,18 +33,41 @@ export const ReportsPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const handlePreviewReport = (report: any) => {
+    setSelectedReport(report);
+    setLoadingData(true);
+    reportsApi.getReportData(report.report_code, 25)
+      .then((data) => setReportData(data))
+      .catch((err) => console.error(err))
+      .finally(() => setLoadingData(false));
+  };
+
+  const handleExport = (reportCode: string, format: 'excel' | 'pdf') => {
+    const url = `/api/v1/reports/${reportCode}/export/${format}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Advanced SQL Analytical Reports</h2>
+          <h2 className="text-xl font-bold text-slate-900">Enterprise Reports & Analytics</h2>
           <p className="text-xs text-slate-500">
-            Recursive CTEs, Monthly PIVOT matrices, and multi-tier occupancy rollups
+            SSRS-equivalent institutional reporting engine (Excel & PDF) and SQL analytical rollups
           </p>
         </div>
 
         {/* Tab Switcher */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <button
+            onClick={() => setActiveTab('catalog')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
+              activeTab === 'catalog' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-600" />
+            Report Catalog ({catalog.length || 14})
+          </button>
           <button
             onClick={() => setActiveTab('hierarchy')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
@@ -46,7 +75,7 @@ export const ReportsPage: React.FC = () => {
             }`}
           >
             <GitBranch className="w-3.5 h-3.5 text-emerald-600" />
-            Asset Hierarchy (CTE)
+            Asset Hierarchy
           </button>
           <button
             onClick={() => setActiveTab('pivot')}
@@ -55,7 +84,7 @@ export const ReportsPage: React.FC = () => {
             }`}
           >
             <Table className="w-3.5 h-3.5 text-sky-600" />
-            Monthly Rent Pivot
+            Rent Pivot
           </button>
           <button
             onClick={() => setActiveTab('occupancy')}
@@ -70,7 +99,140 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {loading ? (
-        <LoadingSpinner message="Querying advanced SQL reporting views..." />
+        <LoadingSpinner message="Querying enterprise reporting engine..." />
+      ) : activeTab === 'catalog' ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {catalog.map((rep) => (
+              <div
+                key={rep.report_code}
+                className="bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                      {rep.report_code}
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {rep.category}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">{rep.title}</h3>
+                  <p className="text-xs text-slate-600 line-clamp-3 mb-3">{rep.description}</p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                  <button
+                    onClick={() => handlePreviewReport(rep)}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 hover:text-blue-600 px-2 py-1 rounded hover:bg-slate-50"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    Preview
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleExport(rep.report_code, 'excel')}
+                      className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded border border-emerald-200 transition"
+                    >
+                      <Download className="w-3 h-3" />
+                      Excel
+                    </button>
+                    <button
+                      onClick={() => handleExport(rep.report_code, 'pdf')}
+                      className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded border border-rose-200 transition"
+                    >
+                      <Download className="w-3 h-3" />
+                      PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Live Data Preview Modal / Drawer */}
+          {selectedReport && (
+            <Card
+              title={`Live Preview: ${selectedReport.report_code} — ${selectedReport.title}`}
+              subtitle={`Showing top 25 records generated from PostgreSQL view / tables`}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500">Category: <b>{selectedReport.category}</b></span>
+                  <span className="text-xs text-slate-500">Columns: <b>{selectedReport.columns?.length || 0}</b></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleExport(selectedReport.report_code, 'excel')}
+                    className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Full Excel (.xlsx)
+                  </button>
+                  <button
+                    onClick={() => handleExport(selectedReport.report_code, 'pdf')}
+                    className="flex items-center gap-1 text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded border border-rose-200"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Full PDF (.pdf)
+                  </button>
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 px-2 py-1"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+
+              {loadingData ? (
+                <LoadingSpinner message="Fetching report data..." />
+              ) : reportData ? (
+                <div className="space-y-4">
+                  {/* Summary KPI Cards */}
+                  {reportData.kpis && reportData.kpis.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {reportData.kpis.map((kpi: any, idx: number) => (
+                        <div key={idx} className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 text-center">
+                          <div className="text-[10px] font-bold text-slate-500 uppercase">{kpi.label}</div>
+                          <div className="text-base font-extrabold text-blue-900 mt-0.5">{kpi.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Data Table */}
+                  <div className="overflow-x-auto max-h-[400px]">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-100 text-slate-700 font-bold sticky top-0">
+                        <tr>
+                          {selectedReport.columns.map((col: any) => (
+                            <th key={col.key} className={`p-2.5 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
+                              {col.label}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {reportData.data.map((row: any, rIdx: number) => (
+                          <tr key={rIdx} className="hover:bg-slate-50">
+                            {selectedReport.columns.map((col: any) => (
+                              <td key={col.key} className={`p-2.5 ${col.align === 'right' ? 'text-right font-mono' : col.align === 'center' ? 'text-center font-mono' : 'text-left'}`}>
+                                {col.type === 'currency' && row[col.key] != null
+                                  ? `₹${Number(row[col.key]).toLocaleString('en-IN')}`
+                                  : col.type === 'percent' && row[col.key] != null
+                                  ? `${Number(row[col.key]).toFixed(1)}%`
+                                  : String(row[col.key] ?? '-')}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+          )}
+        </div>
       ) : activeTab === 'hierarchy' ? (
         <Card title="Recursive Asset Hierarchy (vw_AssetHierarchyCTE)" subtitle="Self-referencing CTE navigating Property → Building → Unit">
           <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">

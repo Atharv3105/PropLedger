@@ -294,3 +294,41 @@ def test_diagnostics_incidents_endpoint():
     data = res.json()
     assert "incident_count" in data
     assert "recent_incidents" in data
+
+# 17. Phase 6 SSRS Equivalent Reporting Endpoints
+def test_reports_catalog_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/catalog", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    catalog = res.json()
+    assert len(catalog) >= 14
+    report_codes = [r["report_code"] for r in catalog]
+    assert "PL-095" in report_codes
+    assert "PL-108" in report_codes
+
+def test_reports_data_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/PL-095/data?limit=10", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    payload = res.json()
+    assert payload["report_code"] == "PL-095"
+    assert "data" in payload
+    assert "kpis" in payload
+    assert len(payload["data"]) > 0
+
+def test_reports_export_excel_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/PL-095/export/excel?limit=10", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert "attachment" in res.headers.get("content-disposition", "")
+    assert len(res.content) > 1000
+
+def test_reports_export_pdf_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/PL-095/export/pdf?limit=10", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+    assert "attachment" in res.headers.get("content-disposition", "")
+    assert res.content.startswith(b"%PDF-")
+

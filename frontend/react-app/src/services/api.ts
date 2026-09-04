@@ -139,6 +139,14 @@ export const reportsApi = {
     const res = await api.get(`/reports/rent-pivot?limit=${limit}`);
     return res.data;
   },
+  getCatalog: async (): Promise<any[]> => {
+    const res = await api.get('/reports/catalog');
+    return res.data;
+  },
+  getReportData: async (reportCode: string, limit = 50): Promise<any> => {
+    const res = await api.get(`/reports/${reportCode}/data?limit=${limit}`);
+    return res.data;
+  },
 };
 
 export const diagnosticsApi = {
