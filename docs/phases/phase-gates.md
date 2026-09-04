@@ -102,17 +102,17 @@
 - [ ] Phase 8 Completion Report created with Gate Status: **PASS**.
 
 ### PHASE 9 — Testing & Quality Validation
-- [ ] Backend unit tests pass (late fee, balance, lease status, delinquency).
-- [ ] Integration tests pass for full critical path (Lease -> Rent -> Partial Payment -> Balance -> Late Fee -> Delinquency -> Collection).
-- [ ] SQL test scripts validate constraints, stored procedures, transactions, and rollback.
-- [ ] Report validation tests confirm parameter filtering, totals, and export fidelity.
-- [ ] Zero critical unhandled errors or untested PRD requirements.
-- [ ] Phase 9 Completion Report created with Gate Status: **PASS**.
+- [x] Backend unit tests pass (late fee, balance, lease status, delinquency).
+- [x] Integration tests pass for full critical path (Lease -> Rent -> Partial Payment -> Balance -> Late Fee -> Delinquency -> Collection).
+- [x] SQL test scripts validate constraints, stored procedures, transactions, and rollback.
+- [x] Report validation tests confirm parameter filtering, totals, and export fidelity.
+- [x] Zero critical unhandled errors or untested PRD requirements.
+- [x] Phase 9 Completion Report created with Gate Status: **PASS**.
 
 ### PHASE 10 — Interview & Portfolio Packaging
-- [ ] Root README complete with architecture, tech stack, and setup guide.
-- [ ] Architecture diagram, ER diagram, and reporting workflow documented.
-- [ ] Complete 26-step demonstrable end-to-end demo script documented and runnable.
-- [ ] Final PRD Audit (`docs/final-prd-audit.md`) passes with 100% requirement traceability.
-- [ ] Interview discussion guide prepared covering SQL, performance, and application support.
-- [ ] Phase 10 Completion Report created with Gate Status: **PASS**.
+- [x] Root README complete with architecture, tech stack, and setup guide.
+- [x] Architecture diagram, ER diagram, and reporting workflow documented.
+- [x] Complete 26-step demonstrable end-to-end demo script documented and runnable.
+- [x] Final PRD Audit (`docs/final-prd-audit.md`) passes with 100% requirement traceability.
+- [x] Interview discussion guide prepared covering SQL, performance, and application support.
+- [x] Phase 10 Completion Report created with Gate Status: **PASS**.

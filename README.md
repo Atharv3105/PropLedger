@@ -55,14 +55,55 @@ Development follows a strict 10-phase, phase-gated execution model:
 | **Phase 6** | **SSRS Reporting Equivalent** | ✅ **COMPLETE** | [`phase-06-completion.md`](docs/phases/phase-06-completion.md) |
 | **Phase 7** | **Crystal Reports Equivalent** | ✅ **COMPLETE** | [`phase-07-completion.md`](docs/phases/phase-07-completion.md) |
 | **Phase 8** | **Performance Engineering & Benchmarks** | ✅ **COMPLETE** | [`phase-08-completion.md`](docs/phases/phase-08-completion.md) |
-| **Phase 9** | Testing & Quality Validation | ⏳ Next | `docs/phases/phase-09-completion.md` |
-| **Phase 10**| Interview & Portfolio Packaging | 🔴 Queued | `docs/phases/phase-10-completion.md` |
+| **Phase 9** | **Testing & Quality Validation** | ✅ **COMPLETE** | [`phase-09-completion.md`](docs/phases/phase-09-completion.md) |
+| **Phase 10**| **Interview & Portfolio Packaging** | ✅ **COMPLETE** | [`phase-10-completion.md`](docs/phases/phase-10-completion.md) |
+
+---
+
+## Live 26-Step Demonstrable Demo Runner (PL-143)
+
+PropLedger includes a standalone end-to-end executable demonstration harness:
+```bash
+# Automated non-stop execution (26/26 steps verified in ~2 seconds)
+python demo_runner.py --auto
+
+# Interactive step-by-step interview presentation
+python demo_runner.py --interactive
+
+# Execute a single operational step (e.g. Step 14: FIFO Payment Allocation)
+python demo_runner.py --step 14
+```
+For complete documentation of all 26 steps with personas, commands, and interview talking points, refer to [`docs/demo/demo-script.md`](docs/demo/demo-script.md).
+
+---
+
+## Master Automated Test Suite (129 Tests, 100% Green)
+
+PropLedger is defended by a rigorous four-tier automated testing pyramid:
+```bash
+# 1. Backend Unit, Integration, API, and Report Validation Tests (60 tests)
+cd backend/fastapi-api
+python -m pytest tests/ -v
+
+# 2. Database Constraint, Trigger & Stored Procedure Atomicity Tests (2 test scripts, 10 checks)
+cd database/11_test_scripts
+python run_all_tests.py
+
+# 3. SSRS-Equivalent Tabular Reporting Engine Tests (59 tests)
+cd reporting/ssrs-equivalent
+pytest tests/ -v
+
+# 4. SAP Crystal Reports Section-Banded Statements Tests (8 tests)
+cd reporting/crystal-equivalent
+pytest tests/ -v
+```
+All 129 tests execute clean with zero regressions against the 526k-record synthetic database.
 
 ---
 
 ## Running Batch Reports & Formal Statements
 
-### SSRS-Equivalent Institutional Reports (14 Reports $\times$ Excel/PDF = 28 Artifacts)
+### SSRS-Equivalent Institutional Reports (14 Reports × Excel/PDF = 28 Artifacts)
 ```bash
 cd reporting/ssrs-equivalent
 python generate_all_reports.py
@@ -89,6 +130,10 @@ Profiles 5 core operational workloads with `EXPLAIN (ANALYZE, BUFFERS)` in basel
 
 ## Documentation Navigation
 
+- **Final PRD Compliance Audit (145/145 Requirements, 100% Verified)**: [`docs/final-prd-audit.md`](docs/final-prd-audit.md)
+- **Technical Interview & Portfolio Guide**: [`docs/interview/interview-guide.md`](docs/interview/interview-guide.md)
+- **26-Step Live Demo Walkthrough Script**: [`docs/demo/demo-script.md`](docs/demo/demo-script.md)
+- **Comprehensive Quality Test Plan**: [`docs/testing/test-plan.md`](docs/testing/test-plan.md)
 - **Requirements Traceability Matrix**: [`docs/requirements/requirements-traceability.md`](docs/requirements/requirements-traceability.md)
 - **Performance Benchmark Results (526k Transactions)**: [`docs/performance/benchmark-results.md`](docs/performance/benchmark-results.md)
 - **Enterprise Indexing Strategy Guide**: [`docs/performance/indexing-strategy.md`](docs/performance/indexing-strategy.md)
