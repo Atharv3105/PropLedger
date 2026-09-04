@@ -13,15 +13,25 @@ def init_db_pool():
     global db_pool
     if db_pool is None:
         try:
-            db_pool = pool.ThreadedConnectionPool(
-                minconn=settings.DB_POOL_MIN,
-                maxconn=settings.DB_POOL_MAX,
-                host=settings.DB_HOST,
-                port=settings.DB_PORT,
-                user=settings.DB_USER,
-                password=settings.DB_PASSWORD,
-                dbname=settings.DB_NAME
-            )
+            if settings.DATABASE_URL:
+                dsn = settings.DATABASE_URL
+                if dsn.startswith("postgres://"):
+                    dsn = dsn.replace("postgres://", "postgresql://", 1)
+                db_pool = pool.ThreadedConnectionPool(
+                    minconn=settings.DB_POOL_MIN,
+                    maxconn=settings.DB_POOL_MAX,
+                    dsn=dsn
+                )
+            else:
+                db_pool = pool.ThreadedConnectionPool(
+                    minconn=settings.DB_POOL_MIN,
+                    maxconn=settings.DB_POOL_MAX,
+                    host=settings.DB_HOST,
+                    port=settings.DB_PORT,
+                    user=settings.DB_USER,
+                    password=settings.DB_PASSWORD,
+                    dbname=settings.DB_NAME
+                )
             logger.info("PostgreSQL ThreadedConnectionPool initialized successfully.")
         except Exception as e:
             logger.error(f"Failed to initialize database connection pool: {e}")

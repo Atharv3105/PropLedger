@@ -60,7 +60,13 @@ def run_seed():
     print("PropLedger Synthetic Data Generation (Scale: 500+ Properties)")
     print("=" * 60)
 
-    conn = psycopg2.connect(**DB_CONFIG)
+    db_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        conn = psycopg2.connect(dsn=db_url)
+    else:
+        conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
     # Clean previous domain data if present for clean idempotent rerun
