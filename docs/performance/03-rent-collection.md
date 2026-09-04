@@ -98,4 +98,4 @@ INCLUDE (charge_id, charge_amount, amount_paid, status);
 
 ## 6. Architectural Takeaway
 
-For analytical queries aggregating millions of transactions across grouping dimensions, covering indexes that embed join foreign keys and aggregation operands into the index payload eliminate random disk I/O, converting multi-second sequential scans into sub-50ms Index-Only Scans.\n
+For analytical queries aggregating millions of transactions across grouping dimensions, covering indexes that embed join foreign keys and aggregation operands into the index payload eliminate random disk I/O, converting multi-second sequential scans into sub-50ms Index-Only Scans.

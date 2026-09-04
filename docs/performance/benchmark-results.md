@@ -62,4 +62,4 @@ The script will:
 2. Run warm executions of all 5 queries, capturing text plans to `performance/before/*.txt`.
 3. Apply `database/12_performance/02_optimized_indexes.sql`.
 4. Re-run warm executions, capturing text plans to `performance/after/*.txt`.
-5. Output the comparative metrics matrix to stdout and save structured JSON to `performance/benchmarks/benchmark_results.json`.\n
+5. Output the comparative metrics matrix to stdout and save structured JSON to `performance/benchmarks/benchmark_results.json`.

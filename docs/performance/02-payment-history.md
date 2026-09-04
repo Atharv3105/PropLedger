@@ -112,4 +112,4 @@ WindowAgg (cost=0.70..11957.47 rows=97661 width=128)
 
 ## 6. Interview Narrative
 
-*"In financial ledger reporting, window functions like `SUM() OVER ()` frequently trigger expensive sort steps. By engineering a composite B-Tree index that mirrors the `PARTITION BY` and `ORDER BY` columns while including the projected metrics via `INCLUDE`, we transformed a costly external sort with 48,000 buffer reads into a zero-sort, Index-Only Scan requiring just 5,100 buffer reads—saving 89% of I/O."*\n
+*"In financial ledger reporting, window functions like `SUM() OVER ()` frequently trigger expensive sort steps. By engineering a composite B-Tree index that mirrors the `PARTITION BY` and `ORDER BY` columns while including the projected metrics via `INCLUDE`, we transformed a costly external sort with 48,000 buffer reads into a zero-sort, Index-Only Scan requiring just 5,100 buffer reads—saving 89% of I/O."*

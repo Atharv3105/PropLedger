@@ -99,4 +99,4 @@ WHERE status IN ('Pending', 'PartiallyPaid', 'Overdue');
 
 ## 6. Interview Narrative
 
-*"In collections operations, querying unpaid charges is a classic candidate for partial indexing. Since 90% of our 132,000 charges are fully paid, indexing the whole table wastes disk and slows down writes. By creating a partial index with `WHERE status IN ('Pending', 'PartiallyPaid', 'Overdue')`, we reduced index footprint by 91%, eliminated 94% of table buffer reads, and achieved a 1.6x speedup with zero write penalty for on-time payments."*\n
+*"In collections operations, querying unpaid charges is a classic candidate for partial indexing. Since 90% of our 132,000 charges are fully paid, indexing the whole table wastes disk and slows down writes. By creating a partial index with `WHERE status IN ('Pending', 'PartiallyPaid', 'Overdue')`, we reduced index footprint by 91%, eliminated 94% of table buffer reads, and achieved a 1.6x speedup with zero write penalty for on-time payments."*

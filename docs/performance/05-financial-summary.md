@@ -122,4 +122,4 @@ INCLUDE (amount, category);
 
 ## 6. Production Takeaways
 
-Multi-year financial rollup queries benefit massively from covering date-bounded indexes. When the database engine can satisfy both the date window filter and the financial accumulation metrics from the index tree without fetching heap pages, buffer pool eviction pressure is eliminated, allowing transactional OLTP workloads to run concurrently without degradation.\n
+Multi-year financial rollup queries benefit massively from covering date-bounded indexes. When the database engine can satisfy both the date window filter and the financial accumulation metrics from the index tree without fetching heap pages, buffer pool eviction pressure is eliminated, allowing transactional OLTP workloads to run concurrently without degradation.

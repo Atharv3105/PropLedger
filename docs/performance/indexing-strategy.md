@@ -114,4 +114,4 @@ Every additional index increases `INSERT` execution time by approximately 3–8%
    In production 24/7 environments, index maintenance must never lock the table:
    ```sql
    REINDEX INDEX CONCURRENTLY idx_payments_lease_date_id_cov;
-   ```\n
+   ```

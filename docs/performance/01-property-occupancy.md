@@ -98,4 +98,4 @@ We engineered two specialized indexes:
 
 ## 6. Architectural Takeaway
 
-By applying a **partial covering index** on `leases` constrained to `status = 'Active'`, we ensure that as historical lease volumes accumulate into hundreds of thousands of expired contracts over 10+ years of operational history, the occupancy calculation will remain fixed in size and execution time, reading only currently active tenancies.\n
+By applying a **partial covering index** on `leases` constrained to `status = 'Active'`, we ensure that as historical lease volumes accumulate into hundreds of thousands of expired contracts over 10+ years of operational history, the occupancy calculation will remain fixed in size and execution time, reading only currently active tenancies.

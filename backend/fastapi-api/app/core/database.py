@@ -30,8 +30,14 @@ def init_db_pool():
 def close_db_pool():
     global db_pool
     if db_pool is not None:
-        db_pool.closeall()
-        logger.info("PostgreSQL connection pool closed.")
+        try:
+            if not getattr(db_pool, "closed", False):
+                db_pool.closeall()
+        except Exception:
+            pass
+        finally:
+            db_pool = None
+            logger.info("PostgreSQL connection pool closed.")
 
 @contextmanager
 def get_db_connection():
