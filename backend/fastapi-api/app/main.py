@@ -24,7 +24,10 @@ logger = logging.getLogger("propledger")
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting PropLedger API Backend...")
-    init_db_pool()
+    try:
+        init_db_pool()
+    except Exception as e:
+        logger.warning(f"Database connection pool initialization deferred (will retry on incoming requests): {e}")
     yield
     # Shutdown
     logger.info("Shutting down PropLedger API Backend...")
