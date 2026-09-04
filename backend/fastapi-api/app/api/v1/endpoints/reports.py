@@ -16,10 +16,20 @@ SSRS_DIR = Path(__file__).resolve().parents[6] / "reporting" / "ssrs-equivalent"
 if str(SSRS_DIR) not in sys.path:
     sys.path.insert(0, str(SSRS_DIR))
 
+# Add Crystal reporting equivalent directory to sys.path
+CRYSTAL_DIR = Path(__file__).resolve().parents[6] / "reporting" / "crystal-equivalent"
+if str(CRYSTAL_DIR) not in sys.path:
+    sys.path.insert(0, str(CRYSTAL_DIR))
+
 try:
     from registry import ReportRegistry
 except ImportError:
     ReportRegistry = None
+
+try:
+    from statement_registry import StatementRegistry
+except ImportError:
+    StatementRegistry = None
 
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -66,6 +76,65 @@ def get_monthly_rent_pivot(
     current_user: dict = Depends(require_roles("ADMIN", "ACCOUNTANT"))
 ):
     return ReportService.get_monthly_rent_pivot(limit=limit)
+
+
+# --------------------------------------------------------------------------
+# Phase 7 Crystal Reports-Equivalent Formal Statements Endpoints (PL-114 - PL-117)
+# --------------------------------------------------------------------------
+
+@router.get("/statements/catalog")
+def get_statement_catalog(
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
+):
+    """Returns catalog of institutional formal statement definitions (CR-01, CR-02, CR-03)."""
+    if not StatementRegistry:
+        raise HTTPException(status_code=500, detail="Statement engine unavailable")
+    return StatementRegistry.list_statements()
+
+
+@router.get("/statements/{statement_code}/pdf")
+def export_statement_pdf(
+    statement_code: str,
+    request: Request,
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
+):
+    """Generates and streams formal section-banded statement PDF."""
+    if not StatementRegistry:
+        raise HTTPException(status_code=500, detail="Statement engine unavailable")
+    stmt = StatementRegistry.get_statement(statement_code)
+    if not stmt:
+        raise HTTPException(status_code=404, detail=f"Statement '{statement_code}' not found in catalog")
+
+    params = dict(request.query_params)
+    pdf_bytes = stmt.export_pdf(params)
+
+    filename = f"{stmt.statement_code.lower()}_{stmt.title.lower().replace(' ', '_')[:25]}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@router.get("/statements/tenant/{tenant_id}/statement")
+def get_tenant_billing_statement_pdf(
+    tenant_id: int,
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "TENANT"))
+):
+    """Generates personal tenant statement of account with detachable remittance advice."""
+    if not StatementRegistry:
+        raise HTTPException(status_code=500, detail="Statement engine unavailable")
+    stmt = StatementRegistry.get_statement("CR-01")
+    if not stmt:
+        raise HTTPException(status_code=404, detail="Tenant statement definition not found")
+
+    pdf_bytes = stmt.export_pdf({"tenant_id": tenant_id})
+    filename = f"stmt_tenant_{tenant_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
 
 
 # --------------------------------------------------------------------------

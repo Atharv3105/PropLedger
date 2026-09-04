@@ -3,16 +3,18 @@ import { reportsApi } from '../services/api';
 import { HierarchyNode, RentPivot, PropertyOccupancy } from '../types';
 import { Card } from '../components/common/Card';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { GitBranch, Table, PieChart, FileText, Download, Eye, CheckCircle } from 'lucide-react';
+import { GitBranch, Table, PieChart, FileText, Download, Eye, FileSpreadsheet, Scissors, CheckCircle, ShieldCheck } from 'lucide-react';
 
 export const ReportsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'catalog' | 'hierarchy' | 'pivot' | 'occupancy'>('catalog');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'statements' | 'hierarchy' | 'pivot' | 'occupancy'>('catalog');
   const [hierarchy, setHierarchy] = useState<HierarchyNode[]>([]);
   const [rentPivot, setRentPivot] = useState<RentPivot[]>([]);
   const [occupancy, setOccupancy] = useState<PropertyOccupancy[]>([]);
   const [catalog, setCatalog] = useState<any[]>([]);
+  const [statements, setStatements] = useState<any[]>([]);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [reportData, setReportData] = useState<any | null>(null);
+  const [tenantIdInput, setTenantIdInput] = useState<number>(1);
   const [loadingData, setLoadingData] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -20,12 +22,14 @@ export const ReportsPage: React.FC = () => {
     setLoading(true);
     Promise.all([
       reportsApi.getCatalog().catch(() => []),
+      reportsApi.getStatementsCatalog().catch(() => []),
       reportsApi.getHierarchy(4).catch(() => []),
       reportsApi.getRentPivot(50).catch(() => []),
       reportsApi.getOccupancy().catch(() => []),
     ])
-      .then(([cat, hier, pvt, occ]) => {
+      .then(([cat, stmts, hier, pvt, occ]) => {
         setCatalog(cat);
+        setStatements(stmts);
         setHierarchy(hier);
         setRentPivot(pvt);
         setOccupancy(occ);
@@ -47,18 +51,28 @@ export const ReportsPage: React.FC = () => {
     window.open(url, '_blank');
   };
 
+  const handleStatementExport = (code: string) => {
+    const url = `/api/v1/reports/statements/${code}/pdf`;
+    window.open(url, '_blank');
+  };
+
+  const handleTenantStatementExport = (tenantId: number) => {
+    const url = `/api/v1/reports/statements/tenant/${tenantId}/statement`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Enterprise Reports & Analytics</h2>
           <p className="text-xs text-slate-500">
-            SSRS-equivalent institutional reporting engine (Excel & PDF) and SQL analytical rollups
+            SSRS grid reports, Crystal Reports-equivalent formal banded accounting statements, and SQL rollups
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 flex-wrap">
           <button
             onClick={() => setActiveTab('catalog')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
@@ -67,6 +81,15 @@ export const ReportsPage: React.FC = () => {
           >
             <FileText className="w-3.5 h-3.5 text-blue-600" />
             Report Catalog ({catalog.length || 14})
+          </button>
+          <button
+            onClick={() => setActiveTab('statements')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
+              activeTab === 'statements' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-purple-600" />
+            Formal Statements (Crystal)
           </button>
           <button
             onClick={() => setActiveTab('hierarchy')}
@@ -100,6 +123,91 @@ export const ReportsPage: React.FC = () => {
 
       {loading ? (
         <LoadingSpinner message="Querying enterprise reporting engine..." />
+      ) : activeTab === 'statements' ? (
+        <div className="space-y-5">
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 p-4 rounded-xl flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Phase 7 Centerpiece
+                </span>
+                <h3 className="text-sm font-bold text-purple-950">Crystal Reports-Equivalent Banded Statement Engine</h3>
+              </div>
+              <p className="text-xs text-purple-800 mt-1 max-w-2xl">
+                Pixel-precise legal and financial statements modeled after Crystal Reports' 7-band architecture (Report Header, Page Header, Group Header, Details, Group Footer, Report Footer, and Detachable Remittance Slip).
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold text-slate-700">Individual Tenant Statement:</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={tenantIdInput}
+                  onChange={(e) => setTenantIdInput(Number(e.target.value))}
+                  className="w-16 px-2 py-1 text-xs border border-slate-300 rounded font-mono"
+                  placeholder="ID"
+                />
+                <button
+                  onClick={() => handleTenantStatementExport(tenantIdInput)}
+                  className="flex items-center gap-1 text-xs font-bold text-purple-700 bg-white hover:bg-purple-100 px-3 py-1.5 rounded border border-purple-300 shadow-xs transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-purple-600" />
+                  Generate Statement
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {statements.map((stmt) => (
+              <div
+                key={stmt.statement_code}
+                className="bg-white p-5 rounded-xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-mono text-xs font-bold px-2.5 py-1 rounded bg-purple-50 text-purple-800 border border-purple-200">
+                      {stmt.statement_code}
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {stmt.orientation.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-900 mb-1.5">{stmt.title}</h3>
+                  <div className="text-[11px] font-semibold text-purple-700 mb-2">{stmt.category}</div>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">{stmt.description}</p>
+
+                  <div className="space-y-1.5 mb-4">
+                    {stmt.has_remittance_slip && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                        <Scissors className="w-3.5 h-3.5 text-amber-600" />
+                        Detachable Perforated Remittance Advice Slip
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Auditor Certified & Signature Blocks
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400 font-mono">Format: PDF (Vector)</span>
+                  <button
+                    onClick={() => handleStatementExport(stmt.statement_code)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 px-3.5 py-1.5 rounded shadow-xs transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Download Statement PDF
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : activeTab === 'catalog' ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

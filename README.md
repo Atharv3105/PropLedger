@@ -53,35 +53,37 @@ Development follows a strict 10-phase, phase-gated execution model:
 | **Phase 4** | **FastAPI Backend API & Domain Services** | ✅ **COMPLETE** | [`phase-04-completion.md`](docs/phases/phase-04-completion.md) |
 | **Phase 5** | **React 18 Application** | ✅ **COMPLETE** | [`phase-05-completion.md`](docs/phases/phase-05-completion.md) |
 | **Phase 6** | **SSRS Reporting Equivalent** | ✅ **COMPLETE** | [`phase-06-completion.md`](docs/phases/phase-06-completion.md) |
-| **Phase 7** | Crystal Reports Equivalent | ⏳ Next | `docs/phases/phase-07-completion.md` |
-| **Phase 8** | Performance Engineering & Benchmarks | 🔴 Queued | `docs/phases/phase-08-completion.md` |
+| **Phase 7** | **Crystal Reports Equivalent** | ✅ **COMPLETE** | [`phase-07-completion.md`](docs/phases/phase-07-completion.md) |
+| **Phase 8** | Performance Engineering & Benchmarks | ⏳ Next | `docs/phases/phase-08-completion.md` |
 | **Phase 9** | Testing & Quality Validation | 🔴 Queued | `docs/phases/phase-09-completion.md` |
 | **Phase 10**| Interview & Portfolio Packaging | 🔴 Queued | `docs/phases/phase-10-completion.md` |
 
 ---
 
-## Running Batch Reports
+## Running Batch Reports & Formal Statements
 
-To execute all 14 institutional reports and produce 28 production Excel (.xlsx) and PDF (.pdf) files:
-
+### SSRS-Equivalent Institutional Reports (14 Reports $\times$ Excel/PDF = 28 Artifacts)
 ```bash
 cd reporting/ssrs-equivalent
 python generate_all_reports.py
+pytest tests/test_reporting_engine.py -v
 ```
+All outputs are saved to `reporting/ssrs-equivalent/output/`.
 
-All generated files are saved into `reporting/ssrs-equivalent/output/`.
-
-To run the automated reporting test suite:
-
+### Crystal Reports Equivalent Section-Banded Statements (3 Production Statements)
 ```bash
-pytest reporting/ssrs-equivalent/tests/test_reporting_engine.py -v
+cd reporting/crystal-equivalent
+python generate_formal_statements.py
+pytest tests/test_crystal_reports.py -v
 ```
+Generates CR-01 (Tenant Statement with Remittance Slip), CR-02 (Columnar Rent Roll with Economic Occupancy), and CR-03 (Multi-Step Income & Expense Statement) in `reporting/crystal-equivalent/output/`.
 
 ---
 
 ## Documentation Navigation
 
 - **Requirements Traceability Matrix**: [`docs/requirements/requirements-traceability.md`](docs/requirements/requirements-traceability.md)
+- **Multi-Reporting Engine Architectural Comparison**: [`docs/reports/reporting-comparison.md`](docs/reports/reporting-comparison.md)
 - **Report Catalog (14 Institutional Reports)**: [`docs/reports/report-catalog.md`](docs/reports/report-catalog.md)
 - **SSRS Replacement Case Study**: [`docs/reports/client-requirement-case-study.md`](docs/reports/client-requirement-case-study.md)
 - **Business Rules Register (BR-01 to BR-10)**: [`docs/requirements/business-rules.md`](docs/requirements/business-rules.md)

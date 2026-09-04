@@ -147,6 +147,10 @@ export const reportsApi = {
     const res = await api.get(`/reports/${reportCode}/data?limit=${limit}`);
     return res.data;
   },
+  getStatementsCatalog: async (): Promise<any[]> => {
+    const res = await api.get('/reports/statements/catalog');
+    return res.data;
+  },
 };
 
 export const diagnosticsApi = {

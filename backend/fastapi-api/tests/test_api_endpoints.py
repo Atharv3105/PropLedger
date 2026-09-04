@@ -332,3 +332,32 @@ def test_reports_export_pdf_endpoint():
     assert "attachment" in res.headers.get("content-disposition", "")
     assert res.content.startswith(b"%PDF-")
 
+# 18. Phase 7 Crystal Reports Equivalent Formal Statements Endpoints
+def test_statements_catalog_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/statements/catalog", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    catalog = res.json()
+    assert len(catalog) == 3
+    codes = [s["statement_code"] for s in catalog]
+    assert "CR-01" in codes
+    assert "CR-02" in codes
+    assert "CR-03" in codes
+
+def test_statement_pdf_export_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/statements/CR-01/pdf", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+    assert "attachment" in res.headers.get("content-disposition", "")
+    assert res.content.startswith(b"%PDF-")
+
+def test_tenant_statement_pdf_endpoint():
+    token = get_auth_token("admin@propledger.com")
+    res = client.get("/api/v1/reports/statements/tenant/1/statement", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+    assert "attachment" in res.headers.get("content-disposition", "")
+    assert res.content.startswith(b"%PDF-")
+
+
