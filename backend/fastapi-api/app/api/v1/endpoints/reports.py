@@ -11,24 +11,36 @@ from app.services.collection_service import CollectionService
 from app.services.finance_service import FinanceService
 from app.core.rbac import require_roles
 
-# Add SSRS reporting equivalent directory to sys.path
-SSRS_DIR = Path(__file__).resolve().parents[6] / "reporting" / "ssrs-equivalent"
-if str(SSRS_DIR) not in sys.path:
-    sys.path.insert(0, str(SSRS_DIR))
+def _find_reporting_dir() -> Optional[Path]:
+    try:
+        curr = Path(__file__).resolve().parent
+        for p in [curr] + list(curr.parents):
+            cand = p / "reporting"
+            if cand.is_dir():
+                return cand
+        if Path("/app/reporting").is_dir():
+            return Path("/app/reporting")
+    except Exception:
+        pass
+    return None
 
-# Add Crystal reporting equivalent directory to sys.path
-CRYSTAL_DIR = Path(__file__).resolve().parents[6] / "reporting" / "crystal-equivalent"
-if str(CRYSTAL_DIR) not in sys.path:
-    sys.path.insert(0, str(CRYSTAL_DIR))
+reporting_base = _find_reporting_dir()
+if reporting_base:
+    ssrs_dir = reporting_base / "ssrs-equivalent"
+    crystal_dir = reporting_base / "crystal-equivalent"
+    if ssrs_dir.is_dir() and str(ssrs_dir) not in sys.path:
+        sys.path.insert(0, str(ssrs_dir))
+    if crystal_dir.is_dir() and str(crystal_dir) not in sys.path:
+        sys.path.insert(0, str(crystal_dir))
 
 try:
     from registry import ReportRegistry
-except ImportError:
+except Exception:
     ReportRegistry = None
 
 try:
     from statement_registry import StatementRegistry
-except ImportError:
+except Exception:
     StatementRegistry = None
 
 
