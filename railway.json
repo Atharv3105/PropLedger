@@ -1,0 +1,9 @@
+{
+  "name": "propledger-backend",
+  "type": "docker",
+  "dockerfilePath": "backend/fastapi-api/Dockerfile",
+  "buildContext": "./backend/fastapi-api",
+  "environment": {
+    "PORT": "8000"
+  }
+}
