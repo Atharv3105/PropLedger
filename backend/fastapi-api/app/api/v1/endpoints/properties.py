@@ -32,6 +32,6 @@ def create_property(
 @router.get("/{property_id}/occupancy", response_model=PropertyOccupancyStats)
 def get_property_occupancy(
     property_id: int,
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "OWNER"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return PropertyService.get_property_occupancy(property_id)

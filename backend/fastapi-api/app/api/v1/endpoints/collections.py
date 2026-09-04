@@ -9,7 +9,7 @@ router = APIRouter(prefix="/collections", tags=["Collections"])
 @router.get("/delinquent", response_model=List[DelinquencyItem])
 def get_delinquency_report(
     property_id: Optional[int] = Query(None),
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return CollectionService.get_delinquency_report(property_id=property_id)
 

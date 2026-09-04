@@ -12,7 +12,7 @@ def list_maintenance_requests(
     property_id: Optional[int] = None,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "MAINTENANCE_STAFF", "TENANT"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER", "MAINTENANCE_STAFF", "TENANT"))
 ):
     return MaintenanceService.list_requests(status=status, property_id=property_id, limit=limit, offset=offset)
 

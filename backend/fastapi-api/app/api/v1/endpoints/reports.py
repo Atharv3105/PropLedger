@@ -41,7 +41,7 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 
 @router.get("/occupancy", response_model=List[PropertyOccupancyStats])
 def get_occupancy_report(
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "OWNER"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return ReportService.get_occupancy_report()
 
@@ -49,7 +49,7 @@ def get_occupancy_report(
 @router.get("/delinquency", response_model=List[DelinquencyItem])
 def get_delinquency_report(
     property_id: Optional[int] = Query(None),
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return CollectionService.get_delinquency_report(property_id=property_id)
 
@@ -57,7 +57,7 @@ def get_delinquency_report(
 @router.get("/financial-summary", response_model=List[FinancialSummaryResponse])
 def get_financial_summary_report(
     property_id: Optional[int] = Query(None),
-    current_user: dict = Depends(require_roles("ADMIN", "ACCOUNTANT", "OWNER"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return FinanceService.get_financial_summaries(property_id=property_id)
 
@@ -65,7 +65,7 @@ def get_financial_summary_report(
 @router.get("/hierarchy", response_model=List[HierarchyNodeResponse])
 def get_asset_hierarchy(
     max_level: int = Query(4, ge=1, le=10),
-    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return ReportService.get_asset_hierarchy(max_level=max_level)
 
@@ -73,7 +73,7 @@ def get_asset_hierarchy(
 @router.get("/rent-pivot", response_model=List[RentPivotResponse])
 def get_monthly_rent_pivot(
     limit: int = Query(50, ge=1, le=500),
-    current_user: dict = Depends(require_roles("ADMIN", "ACCOUNTANT"))
+    current_user: dict = Depends(require_roles("ADMIN", "PROPERTY_MANAGER", "ACCOUNTANT", "OWNER"))
 ):
     return ReportService.get_monthly_rent_pivot(limit=limit)
 
