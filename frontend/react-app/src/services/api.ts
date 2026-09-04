@@ -5,8 +5,17 @@ import {
   MaintenanceRequest, FinancialSummary, HierarchyNode, RentPivot, HealthCheck
 } from '../types';
 
+function getBaseUrl(): string {
+  const envUrl = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.VITE_API_BASE_URL;
+  if (!envUrl) return '/api/v1';
+  const trimmed = String(envUrl).trim().replace(/\/+$/, '');
+  if (trimmed.endsWith('/api/v1')) return trimmed;
+  if (trimmed.endsWith('/api')) return `${trimmed}/v1`;
+  return `${trimmed}/api/v1`;
+}
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
