@@ -8,7 +8,10 @@ import {
 function getBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.VITE_API_BASE_URL;
   if (!envUrl) return '/api/v1';
-  const trimmed = String(envUrl).trim().replace(/\/+$/, '');
+  let trimmed = String(envUrl).trim().replace(/\/+$/, '');
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('/')) {
+    trimmed = `https://${trimmed}`;
+  }
   if (trimmed.endsWith('/api/v1')) return trimmed;
   if (trimmed.endsWith('/api')) return `${trimmed}/v1`;
   return `${trimmed}/api/v1`;
