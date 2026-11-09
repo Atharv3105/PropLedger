@@ -7,7 +7,7 @@
 [![Reporting](https://img.shields.io/badge/Reporting-ReportLab_%7C_OpenPyXL-purple.svg)](reporting/ssrs-equivalent/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **PropLedger** is an enterprise-grade, SQL-centric property management and financial analytics platform modeling residential and commercial real estate operations. Designed as a high-caliber showcase for software engineering, SQL application support, and institutional reporting.
+> **PropLedger** is an enterprise-grade, SQL-centric property management and financial analytics platform modeling residential and commercial real estate operations. Designed as a showcase for software engineering, SQL application support, and institutional reporting.
 
 ---
 
